@@ -1,32 +1,190 @@
-Step 1: Finish Creating the Repository
-On the screen you are looking at right now, do this:
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Imposter Game</title>
+    <style>
+        :root {
+            --bg-color: #121824;
+            --card-color: #1e293b;
+            --text-color: #f8fafc;
+            --accent-color: #3b82f6;
+            --danger-color: #ef4444;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-color); display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        .container { background: var(--card-color); padding: 30px; border-radius: 16px; width: 100%; max-width: 450px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
+        h1 { font-size: 2rem; margin-bottom: 20px; color: #fff; text-transform: uppercase; letter-spacing: 1px; }
+        p { color: #94a3b8; font-size: 1.1rem; margin-bottom: 25px; line-height: 1.5; }
+        .input-group { margin-bottom: 15px; text-align: left; }
+        label { display: block; margin-bottom: 5px; color: #94a3b8; font-size: 0.9rem; }
+        input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: white; font-size: 1rem; }
+        button { width: 100%; padding: 14px; border: none; border-radius: 8px; font-size: 1.1rem; font-weight: bold; cursor: pointer; color: white; transition: background 0.2s; margin-top: 10px; }
+        .btn-primary { background: var(--accent-color); }
+        .btn-primary:hover { background: #2563eb; }
+        .btn-warning { background: var(--warning-color); color: #0f172a; }
+        .btn-danger { background: var(--danger-color); }
+        .screen { display: none; }
+        .screen.active { display: block; }
+        .player-badge { font-size: 1.5rem; font-weight: 800; color: var(--warning-color); margin-bottom: 10px; }
+        .role-text { font-size: 1.8rem; font-weight: 800; margin: 20px 0; }
+        .word-display { font-size: 2.2rem; font-weight: 900; background: #0f172a; padding: 15px; border-radius: 8px; margin: 20px 0; letter-spacing: 2px; }
+        .truth-list { text-align: left; background: #0f172a; padding: 15px; border-radius: 8px; margin: 20px 0; max-height: 200px; overflow-y: auto; }
+        .truth-item { padding: 8px 0; border-bottom: 1px solid #1e293b; display: flex; justify-content: space-between; }
+    </style>
+</head>
+<body>
 
-Scroll down to the bottom and click the big green "Create repository" button. (Leave everything else as the default—Public visibility is perfect).
+<div class="container">
+    <div id="screen-setup" class="screen active">
+        <h1>The Imposter</h1>
+        <p>A discrete game of deception for game night.</p>
+        <div class="input-group">
+            <label>Total Players</label>
+            <input type="number" id="input-players" value="6" min="3">
+        </div>
+        <div class="input-group">
+            <label>Number of Imposters</label>
+            <input type="number" id="input-imposters" value="1" min="1">
+        </div>
+        <button class="btn-primary" onclick="startGame()">Start Game</button>
+    </div>
 
-Step 2: Upload Your File
-Once you click that button, the screen will change.
+    <div id="screen-pass" class="screen">
+        <div class="player-badge" id="pass-player-title">PLAYER 1</div>
+        <p>Pass the device to this player.<br>Make sure no one else is looking!</p>
+        <button class="btn-primary" onclick="showSecret()">Reveal My Word</button>
+    </div>
 
-Look closely at the middle of the new page. You will see a line of text that says: "Quick setup — if you’ve done this kind of thing before" followed by some code.
+    <div id="screen-secret" class="screen">
+        <p>Your Secret Info</p>
+        <div id="role-output" class="role-text"></div>
+        <div id="word-output" class="word-display"></div>
+        <button class="btn-warning" onclick="nextPlayer()">Hide & Pass Next</button>
+    </div>
 
-Look right below that code section. Find the sentence: "Get started by creating a new file or uploading an existing file."
+    <div id="screen-end" class="screen">
+        <h1>Discussion Time!</h1>
+        <p>All players have seen their words. Talk, grill each other, and vote on who the Imposter is.</p>
+        <button class="btn-danger" onclick="revealTruth()">Reveal the Truth</button>
+    </div>
 
-Click the blue "uploading an existing file" link.
+    <div id="screen-truth" class="screen">
+        <h1>The Truth</h1>
+        <p>The Secret Word was:</p>
+        <div id="truth-word" class="word-display" style="color: var(--success-color);"></div>
+        <div id="truth-list-container" class="truth-list"></div>
+        <button class="btn-primary" onclick="resetGame()">Play Again</button>
+    </div>
+</div>
 
-Drag and drop your index.html file into the box on the screen.
+<script>
+    const WORD_BANK = [
+        "Pizza", "Sushi", "Taco", "Burger", "Watermelon", "Spaghetti", "Avocado", "Chocolate", "Croissant", "Pineapple", "Donut", "Cheesecake", "Popcorn", "Milkshake", "Coffee", "Waffles",
+        "Taylor Swift", "Albert Einstein", "Spider-Man", "Harry Potter", "Batman", "Elvis Presley", "Marilyn Monroe", "Barbie", "SpongeBob", "Abraham Lincoln", "Beyoncé", "Santa Claus",
+        "Lion", "Penguin", "Elephant", "Dolphin", "Sloth", "Flamingo", "Octopus", "Giraffe", "Koala", "Hedgehog", "Chameleon", "Platypus", "Cheetah", "Owl", "Shark", "Kangaroo",
+        "Smartphone", "Bicycle", "Guitar", "Clock", "Duct Tape", "Toothbrush", "Toaster", "Backpack", "Flashlight", "Pillow", "Keychain", "Headphones", "Microwave", "Mirror", "Scissors", "Blanket",
+        "Paris", "Beach", "Library", "Supermarket", "Hollywood", "The Moon", "New York", "Disneyland", "Egypt", "Airport", "Water Park", "Gym", "Camping Tent", "School Bus", "Museum", "Zoo"
+    ];
+    
+    let numPlayers, numImposters, secretWord, playerRoles;
+    let currentPlayerIndex = 0;
 
-Scroll down to the bottom of that page and click the green "Commit changes" button.
+    function changeScreen(screenId) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(screenId).classList.add('active');
+    }
 
-Step 3: Turn on the Website Link
-Now that your file is uploaded, you just have to turn on the link:
+    function startGame() {
+        const playersInput = document.getElementById('input-players');
+        const impostersInput = document.getElementById('input-imposters');
 
-Look at the top tabs of your repository page (where it says Code, Issues, Pull Requests...). Click on Settings (the gear icon on the far right).
+        numPlayers = parseInt(playersInput.value, 10);
+        numImposters = parseInt(impostersInput.value, 10);
 
-On the left-hand sidebar, scroll down and click on Pages.
+        if (isNaN(numPlayers) || numPlayers < 3) {
+            alert("Please enter a valid number of players (minimum 3).");
+            return;
+        }
+        if (isNaN(numImposters) || numImposters < 1) {
+            alert("You need at least 1 imposter to play.");
+            return;
+        }
+        if (numImposters >= numPlayers) {
+            alert("You can't have equal or more imposters than total players!");
+            return;
+        }
 
-Look for the Build and deployment section in the middle of the page.
+        secretWord = WORD_BANK[Math.floor(Math.random() * WORD_BANK.length)].toUpperCase();
+        playerRoles = new Array(numPlayers).fill("Innocent");
+        
+        let assignedImposters = 0;
+        while (assignedImposters < numImposters) {
+            let randIdx = Math.floor(Math.random() * numPlayers);
+            if (playerRoles[randIdx] === "Innocent") {
+                playerRoles[randIdx] = "Imposter";
+                assignedImposters++;
+            }
+        }
 
-Under "Branch", click the dropdown menu that currently says None and change it to main (or master).
+        currentPlayerIndex = 0;
+        setupPassScreen();
+    }
 
-Click Save.
+    function setupPassScreen() {
+        document.getElementById('pass-player-title').innerText = `PLAYER ${currentPlayerIndex + 1}`;
+        changeScreen('screen-pass');
+    }
 
-Give it about 1 to 2 minutes, refresh that same Pages screen, and GitHub will display a live link at the top of the page (e.g., https://yourusername.github.io/Imposter-game/) that you can text to your group chat!
+    function showSecret() {
+        const role = playerRoles[currentPlayerIndex];
+        const roleOut = document.getElementById('role-output');
+        const wordOut = document.getElementById('word-output');
+
+        if (role === "Imposter") {
+            roleOut.innerText = "YOU ARE THE IMPOSTER";
+            roleOut.style.color = "var(--danger-color)";
+            wordOut.innerText = "🤔 Try to figure out the word!";
+            wordOut.style.fontSize = "1.2rem";
+        } else {
+            roleOut.innerText = "YOU ARE INNOCENT";
+            roleOut.style.color = "var(--success-color)";
+            wordOut.innerText = secretWord;
+            wordOut.style.fontSize = "2.2rem";
+        }
+        changeScreen('screen-secret');
+    }
+
+    function nextPlayer() {
+        currentPlayerIndex++;
+        if (currentPlayerIndex < numPlayers) {
+            setupPassScreen();
+        } else {
+            changeScreen('screen-end');
+        }
+    }
+
+    function revealTruth() {
+        document.getElementById('truth-word').innerText = secretWord;
+        const listContainer = document.getElementById('truth-list-container');
+        listContainer.innerHTML = "";
+
+        playerRoles.forEach((role, idx) => {
+            const item = document.createElement('div');
+            item.className = "truth-item";
+            item.innerHTML = `<span>Player ${idx + 1}</span> <span style="color: ${role === 'Imposter' ? 'var(--danger-color)' : 'var(--success-color)'}; font-weight: bold;">${role.toUpperCase()}</span>`;
+            listContainer.appendChild(item);
+        });
+
+        changeScreen('screen-truth');
+    }
+
+    function resetGame() {
+        changeScreen('screen-setup');
+    }
+</script>
+</body>
+</html>
