@@ -6,13 +6,13 @@
     <title>The Imposter Game</title>
     <style>
         :root {
-            --bg-color: #121824;
-            --card-color: #1e293b;
-            --text-color: #f8fafc;
-            --accent-color: #3b82f6;
-            --danger-color: #ef4444;
-            --success-color: #10b981;
-            --warning-color: #f59e0b;
+        --bg-color: #1a0b2e;       /* Retro Purple*/
+        --card-color: #2d124d;     /* Lighter Neon Violet */
+        --text-color: #ffffff;     /* White */
+        --accent-color: #ff007f;   /* Pink */
+        --danger-color: #ff3333;   /* Bright Red (Imposter)*/
+        --success-color: #00ffcc;  /* Retro Mint Green (Innocent) */
+        --warning-color: #ffcc00;  /* Yellow */
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, sans-serif; }
         body { background-color: var(--bg-color); color: var(--text-color); display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
@@ -82,11 +82,17 @@
 </div>
 
 <script>
+    // Mega word bank with all your classic and new items
     const WORD_BANK = [
+        // Foods
         "Pizza", "Sushi", "Taco", "Burger", "Watermelon", "Spaghetti", "Avocado", "Chocolate", "Croissant", "Pineapple", "Donut", "Cheesecake", "Popcorn", "Milkshake", "Coffee", "Waffles",
+        // Famous People
         "Taylor Swift", "Albert Einstein", "Spider-Man", "Harry Potter", "Batman", "Elvis Presley", "Marilyn Monroe", "Barbie", "SpongeBob", "Abraham Lincoln", "Beyoncé", "Santa Claus",
+        // Animals
         "Lion", "Penguin", "Elephant", "Dolphin", "Sloth", "Flamingo", "Octopus", "Giraffe", "Koala", "Hedgehog", "Chameleon", "Platypus", "Cheetah", "Owl", "Shark", "Kangaroo",
+        // Household Objects
         "Smartphone", "Bicycle", "Guitar", "Clock", "Duct Tape", "Toothbrush", "Toaster", "Backpack", "Flashlight", "Pillow", "Keychain", "Headphones", "Microwave", "Mirror", "Scissors", "Blanket",
+        // Places
         "Paris", "Beach", "Library", "Supermarket", "Hollywood", "The Moon", "New York", "Disneyland", "Egypt", "Airport", "Water Park", "Gym", "Camping Tent", "School Bus", "Museum", "Zoo"
     ];
     
@@ -99,12 +105,14 @@
     }
 
     function startGame() {
+        // Grab values safely
         const playersInput = document.getElementById('input-players');
         const impostersInput = document.getElementById('input-imposters');
 
         numPlayers = parseInt(playersInput.value, 10);
         numImposters = parseInt(impostersInput.value, 10);
 
+        // Validation Checks to make sure the app doesn't crash
         if (isNaN(numPlayers) || numPlayers < 3) {
             alert("Please enter a valid number of players (minimum 3).");
             return;
@@ -118,9 +126,13 @@
             return;
         }
 
+        // Setup Word
         secretWord = WORD_BANK[Math.floor(Math.random() * WORD_BANK.length)].toUpperCase();
+        
+        // Setup Roles array
         playerRoles = new Array(numPlayers).fill("Innocent");
         
+        // Randomly assign imposters
         let assignedImposters = 0;
         while (assignedImposters < numImposters) {
             let randIdx = Math.floor(Math.random() * numPlayers);
